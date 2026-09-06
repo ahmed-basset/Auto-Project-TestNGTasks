@@ -26,7 +26,8 @@ public class RegisterTest extends BaseTest{
     String state =  faker.address().state();
     String zipcode = faker.address().zipCode();
     String city = faker.address().city();
-    String mobileunumber =  faker.phoneNumber().phoneNumber();
+    // Egyptian mobile format: 01 + operator digit (0 Vodafone, 1 Etisalat, 2 Orange, 5 WE) + 8 digits
+    String mobileunumber = faker.regexify("01[0125][0-9]{8}");
 
     Date Dateofbirth = faker.date().birthday(12,50);
     SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -38,7 +39,7 @@ public class RegisterTest extends BaseTest{
     public  void EnsureUserCanCreateAccountWithValidCrendtails()
 {
    registerPage =new RegisterPage(driver);
-   registerPage.Register_1(firstname,lastname,email,pass,dob,"female","Chad");
+   registerPage.Register_1(firstname,lastname,email,pass,dob,"female","Egypt","Egypt","Alexandria","Montaza",mobileunumber);
 
 
 }

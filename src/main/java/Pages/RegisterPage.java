@@ -24,11 +24,6 @@ public class RegisterPage extends BasePage {
     By BDate = By.cssSelector("input[class=\"css-1oy2ayn e1n2h7jb1\"]");
     By GenderM = By.xpath("//label[.//input[@value='male']]");
     By GenderF =By.xpath("//label[.//input[@value='female']]");
-    By nationality = By.xpath("//*[@id=\"general-info-form\"]/div[1]/div[5]/div/div[2]/div/div[1]/div[2]");
-    By option = By.cssSelector("input[id=\"react-select-2-input\"]");
-    By Contury = By.xpath("//*[@id=\"general-info-form\"]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]");
-    By Area = By.xpath("//*[@id=\"general-info-form\"]/div[2]/div[2]/div/div[2]/div/div[1]/div[2]");
-    By City = By.id("react-select-5-input");
     By MobileNum = By.cssSelector("input[class=\"css-e3onam e1n2h7jb1\"]");
     By ContinueB = By.cssSelector("button[class=\"css-lfgv4q ezfki8j0\"]");
     By Assert2 = By.xpath("//div[@class=\"css-p14xnm exkztdf0\"]/p[@class=\"css-qqj41n\"]");
@@ -79,17 +74,29 @@ public class RegisterPage extends BasePage {
     }
     public void SetNationality(String str)
     {
-      // ClickElement(nationality);
-       Typing(option,str);
-
-
+        SelectFromDropDownList("Nationality",str);
     }
-    public void SetContry()
+    public void SetContry(String strr)
     {
-        ClickElement(Contury);
-
+        SelectFromDropDownList("Country",strr);
     }
-    public void Register_1(String fn,String ln , String em ,String pass ,String DOB,String gender,String Na)
+    public void SetCity(String city)
+    {
+        SelectFromDropDownList("City",city);
+    }
+    public void SetArea(String area)
+    {
+        SelectFromDropDownList("Area",area);
+    }
+    public void SetMobileNum(String mobile)
+    {
+        Typing(MobileNum,mobile);
+    }
+    public void Continue_2()
+    {
+        ClickElement(ContinueB);
+    }
+    public void Register_1(String fn,String ln , String em ,String pass ,String DOB,String gender,String Na,String co,String Cit,String Ar,String Mob)
     {
         BeginRegisteration();
         EnterFN(fn);
@@ -101,7 +108,11 @@ public class RegisterPage extends BasePage {
         SetDateOfBirth(DOB);
         SetGender(gender);
         SetNationality(Na);
-       // SetContry();
+        SetContry(co);
+        SetCity(Cit);
+        SetArea(Ar);
+        SetMobileNum(Mob);
+        Continue_2();
     }
 
 
