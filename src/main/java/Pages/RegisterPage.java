@@ -25,6 +25,8 @@ public class RegisterPage extends BasePage {
     By BDate = By.cssSelector("input[class=\"css-1oy2ayn e1n2h7jb1\"]");
     By GenderM = By.xpath("//label[.//input[@value='male']]");
     By GenderF =By.xpath("//label[.//input[@value='female']]");
+    By GenderMInput = By.cssSelector("input[value='male']");
+    By GenderFInput = By.cssSelector("input[value='female']");
     By MobileNum = By.cssSelector("input[class=\"css-e3onam e1n2h7jb1\"]");
     By ContinueB = By.cssSelector("button[class=\"css-lfgv4q ezfki8j0\"]");
     By Assert2 = By.xpath("//*[contains(normalize-space(.), 'Tell us about your education') or contains(normalize-space(.), 'Tell Us About Your Education')]");
@@ -38,6 +40,16 @@ public class RegisterPage extends BasePage {
      //Tell about Experience
      By ContinueD = By.cssSelector("button[class=\"css-lfgv4q ezfki8j0\"]");
      By Assert4 = By.xpath("//*[contains(normalize-space(.), 'Tell us about your expertise') or contains(normalize-space(.), 'Tell Us About Your Expertise')]");
+
+     //Tell about Expertise
+     // The expertise step submits with a plain "Continue"; the alternatives cover the wording used
+     // elsewhere in the wizard.
+     By SaveAndContinue = By.xpath("//button[normalize-space(.)='Continue' or contains(normalize-space(.), 'Save and Continue') or contains(normalize-space(.), 'Save & Continue')]");
+     By GetStartedAfterRegistration = By.xpath("//*[self::button or self::a][contains(normalize-space(.), 'Get Started') or contains(normalize-space(.), 'Get started')]");
+
+     //Tell about Career Interests
+     By Assert5 = By.xpath("//*[contains(normalize-space(.), 'Tell us about your career interests') or contains(normalize-space(.), 'Tell Us About Your Career Interests')]");
+     By MinimumSalary = By.cssSelector("input[name=\"minimumSalary\"]");
 
     public void BeginRegisteration()
     {
@@ -75,11 +87,11 @@ public class RegisterPage extends BasePage {
     {
         if(gen.equalsIgnoreCase("male") || gen.equalsIgnoreCase("m"))
         {
-          ClickElement(GenderM);
+          SelectRadioButton(GenderM, GenderMInput);
         }
         else if (gen.equalsIgnoreCase("female") || gen.equalsIgnoreCase("f"))
         {
-            ClickElement(GenderF);
+            SelectRadioButton(GenderF, GenderFInput);
         }
 
     }
@@ -141,6 +153,38 @@ public class RegisterPage extends BasePage {
     {
         ClickElement(ContinueC);
     }
+    public void AddSkill(String skill)
+    {
+        SelectFromDropDownList("Skills, Tools and Technologies", skill);
+    }
+    public void SetLanguage(String language)
+    {
+        SelectFromDropDownListByLabelTag("Language 1", language);
+    }
+    public void SetLanguageProficiency(String proficiency)
+    {
+        SelectFromDropDownListByLabelTag("Proficiency", proficiency);
+    }
+    public void SaveAndContinue()
+    {
+        ClickAndLeavePage(SaveAndContinue);
+    }
+    public void SetJobTitle(String jobTitle)
+    {
+        SelectFromDropDownList("Job Titles", jobTitle);
+    }
+    public void SetJobCategory(String category)
+    {
+        SelectFromDropDownList("Job Categories", category);
+    }
+    public void SetMinimumSalary(String salary)
+    {
+        Typing(MinimumSalary, salary);
+    }
+    public void StartUsingTheSite()
+    {
+        ClickAndLeavePage(GetStartedAfterRegistration);
+    }
     //Assertions
     public String CheckuserOnHisInformationPage()
     {
@@ -163,6 +207,12 @@ public class RegisterPage extends BasePage {
     {
         wait.until(ExpectedConditions.visibilityOfElementLocated(Assert4));
         return GetText(Assert4);
+    }
+
+    public String CheckuserOnHisCareerInterestsPage()
+    {
+        wait.until(ExpectedConditions.visibilityOfElementLocated(Assert5));
+        return GetText(Assert5);
     }
 
     public void Register_1(String fn,String ln , String em ,String pass ,String DOB,String gender,String Na,String co,String Cit,String Ar,String Mob)
