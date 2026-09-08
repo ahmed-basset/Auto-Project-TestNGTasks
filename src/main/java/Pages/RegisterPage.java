@@ -17,7 +17,8 @@ public class RegisterPage extends BasePage {
     By Password =By.cssSelector("input[name=\"password\"]");
     By CreateAccButton = By.cssSelector("button[class=\"css-19xra8v ezfki8j0\"]");
     By fillManaul = By.cssSelector("a[class=\"css-1qhkksc ezfki8j0\"]");
-    By Assert1 = By.xpath("//*[contains(normalize-space(.), 'Tell us about yourself') or contains(normalize-space(.), 'Tell Us About Yourself')]");
+    By Assert1 = By.xpath("" +
+            "//*[contains(normalize-space(.), 'Tell us about yourself') or contains(normalize-space(.), 'Tell Us About Yourself')]");
 
     // Tell about yourself
 
@@ -28,7 +29,11 @@ public class RegisterPage extends BasePage {
     By ContinueB = By.cssSelector("button[class=\"css-lfgv4q ezfki8j0\"]");
     By Assert2 = By.xpath("//*[contains(normalize-space(.), 'Tell us about your education') or contains(normalize-space(.), 'Tell Us About Your Education')]");
 
-
+     //Tell about Education
+     By FieldOfStud = By.cssSelector("input[class=\"css-1a96k50 ek82ord0\"]");
+     By University = By.xpath("//*[@id=\"education-form\"]/div[1]/div[3]/div[2]/div[1]/div/div[2]/div/div[1]/div[2]");
+     By ContinueC = By.cssSelector("button[class=\"css-lfgv4q ezfki8j0\"]");
+     By Assert3 = By.xpath("//*[contains(normalize-space(.), 'Tell us about your experience') or contains(normalize-space(.), 'Tell Us About Your Experience')]");
 
     public void BeginRegisteration()
     {
@@ -98,7 +103,28 @@ public class RegisterPage extends BasePage {
     {
         ClickElement(ContinueB);
     }
+    public void SetEducationLeVel(String level)
+    {
+      SelectFromDropDownListByName("currentEducationLevel", level);
+    }
+    public void SetFieldStudy(String study)
+    {
+        Typing(FieldOfStud,study);
+    }
 
+    public void SetUniversity(String Univers)
+    {
+        SelectFromDropDownListByName("schoolName", Univers);
+    }
+    public void SetYearOfGraduation(String Year)
+    {
+        SelectFromDropDownListByName("endingYear", Year);
+    }
+
+    public void Continue_3()
+    {
+        ClickElement(ContinueC);
+    }
     //Assertions
     public String CheckuserOnHisInformationPage()
     {
@@ -109,6 +135,12 @@ public class RegisterPage extends BasePage {
     {
         wait.until(ExpectedConditions.visibilityOfElementLocated(Assert2));
         return GetText(Assert2);
+    }
+
+    public String CheckuserOnHisExperiencePage()
+    {
+        wait.until(ExpectedConditions.visibilityOfElementLocated(Assert3));
+        return GetText(Assert3);
     }
 
     public void Register_1(String fn,String ln , String em ,String pass ,String DOB,String gender,String Na,String co,String Cit,String Ar,String Mob)

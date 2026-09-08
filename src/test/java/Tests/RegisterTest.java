@@ -26,7 +26,7 @@ public class RegisterTest extends BaseTest {
     String mobileunumber;
     String dob;
 
-    
+
     private void generateUser() {
         email = "qa_" + UUID.randomUUID() + "@mail.com";
         pass = faker.internet().password();
@@ -64,6 +64,7 @@ public class RegisterTest extends BaseTest {
         String personalInfoPageText = registerPage.CheckuserOnHisInformationPage();
         softAssert.assertTrue(personalInfoPageText.toLowerCase().contains("tell us about yourself"),
                 "Expected the personal information page title to be shown. Actual text: " + personalInfoPageText);
+        softAssert.assertAll();
     }
 
     @Test
@@ -74,5 +75,22 @@ public class RegisterTest extends BaseTest {
         String educationPageText = registerPage.CheckuserOnHisEducationPage();
         softAssert.assertTrue(educationPageText.toLowerCase().contains("tell us about your education"),
                 "Expected the education page title to be shown. Actual text: " + educationPageText);
+        softAssert.assertAll();
+    }
+    @Test
+    public void EnsureUserCanReachExperiencePage()
+    {
+        fillPersonalInformationPage();
+        registerPage.Continue_2();
+        registerPage.SetEducationLeVel("Bachelor's Degree");
+        registerPage.SetFieldStudy("Accounting");
+        registerPage.SetUniversity("Cairo University (CU)");
+        registerPage.SetYearOfGraduation("2018");
+        registerPage.Continue_3();
+        SoftAssert softAssert = new SoftAssert();
+        String experiencePageText = registerPage.CheckuserOnHisExperiencePage();
+        softAssert.assertTrue(experiencePageText.toLowerCase().contains("tell us about your experience"),
+                "Expected the experience page title to be shown. Actual text: " + experiencePageText);
+        softAssert.assertAll();
     }
 }
