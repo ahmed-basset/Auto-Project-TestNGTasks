@@ -35,6 +35,10 @@ public class RegisterPage extends BasePage {
      By ContinueC = By.cssSelector("button[class=\"css-lfgv4q ezfki8j0\"]");
      By Assert3 = By.xpath("//*[contains(normalize-space(.), 'Tell us about your experience') or contains(normalize-space(.), 'Tell Us About Your Experience')]");
 
+     //Tell about Experience
+     By ContinueD = By.cssSelector("button[class=\"css-lfgv4q ezfki8j0\"]");
+     By Assert4 = By.xpath("//*[contains(normalize-space(.), 'Tell us about your expertise') or contains(normalize-space(.), 'Tell Us About Your Expertise')]");
+
     public void BeginRegisteration()
     {
         ClickElement(GetStarted);
@@ -121,6 +125,18 @@ public class RegisterPage extends BasePage {
         SelectFromDropDownListByName("endingYear", Year);
     }
 
+    public void SetYearsOfExperience(String years)
+    {
+        SelectFromDropDownListByName("workExperienceYears", years);
+    }
+    public void SetCareerLevel(String level)
+    {
+        SelectFromDropDownListByName("careerLevel", level);
+    }
+    public void Continue_4()
+    {
+        ClickElement(ContinueD);
+    }
     public void Continue_3()
     {
         ClickElement(ContinueC);
@@ -141,6 +157,12 @@ public class RegisterPage extends BasePage {
     {
         wait.until(ExpectedConditions.visibilityOfElementLocated(Assert3));
         return GetText(Assert3);
+    }
+
+    public String CheckuserOnHisExpertisePage()
+    {
+        wait.until(ExpectedConditions.visibilityOfElementLocated(Assert4));
+        return GetText(Assert4);
     }
 
     public void Register_1(String fn,String ln , String em ,String pass ,String DOB,String gender,String Na,String co,String Cit,String Ar,String Mob)

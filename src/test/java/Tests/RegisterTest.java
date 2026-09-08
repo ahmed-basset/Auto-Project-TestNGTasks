@@ -93,4 +93,24 @@ public class RegisterTest extends BaseTest {
                 "Expected the experience page title to be shown. Actual text: " + experiencePageText);
         softAssert.assertAll();
     }
+
+    @Test
+    public void EnsureUserCanReachExpertisePage()
+    {
+        fillPersonalInformationPage();
+        registerPage.Continue_2();
+        registerPage.SetEducationLeVel("Bachelor's Degree");
+        registerPage.SetFieldStudy("Accounting");
+        registerPage.SetUniversity("Cairo University (CU)");
+        registerPage.SetYearOfGraduation("2018");
+        registerPage.Continue_3();
+        registerPage.SetYearsOfExperience("No experience");
+        registerPage.SetCareerLevel("Student");
+        registerPage.Continue_4();
+        SoftAssert softAssert = new SoftAssert();
+        String expertisePageText = registerPage.CheckuserOnHisExpertisePage();
+        softAssert.assertTrue(expertisePageText.toLowerCase().contains("tell us about your expertise"),
+                "Expected the expertise page title to be shown. Actual text: " + expertisePageText);
+        softAssert.assertAll();
+    }
 }
