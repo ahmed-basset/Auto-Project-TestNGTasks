@@ -26,9 +26,7 @@ public class RegisterTest extends BaseTest {
     String mobileunumber;
     String dob;
 
-    // TestNG reuses one instance for every @Test in the class, so generating the data in field
-    // initialisers would make both tests submit the same email. The second registration would then
-    // be rejected as an existing account and the flow would never leave the create-account step.
+    
     private void generateUser() {
         email = "qa_" + UUID.randomUUID() + "@mail.com";
         pass = faker.internet().password();

@@ -52,8 +52,7 @@ public class BasePage {
        actions.sendKeys(Keys.ENTER).perform();
    }
 
-    // react-select widgets are plain divs, so org.openqa.selenium.support.ui.Select cannot drive them.
-    // Fields are located by their visible label so the locators survive markup changes.
+
     public void SelectFromDropDownList(String label, String value)
     {
         String field = "//*[normalize-space(text())='" + label + "']"
