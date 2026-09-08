@@ -27,7 +27,20 @@ public class BasePage {
     //Actions
     public void ClickElement(By Locator)
     {
-        wait.until(ExpectedConditions.elementToBeClickable(Locator)).click();
+        WebElement element = wait.until(ExpectedConditions.elementToBeClickable(Locator));
+        js.executeScript("arguments[0].scrollIntoView({block:'center'});", element);
+
+        // The site drops third-party overlays (e.g. the <us-widget> badge) on top of the page after
+        // it becomes interactive, so a plain click is sometimes intercepted. A JS click is not
+        // blocked by whatever happens to sit over the element.
+        try
+        {
+            element.click();
+        }
+        catch (ElementClickInterceptedException e)
+        {
+            js.executeScript("arguments[0].click();", element);
+        }
     }
     public void Typing(By locator , String str)
     {

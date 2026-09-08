@@ -1,12 +1,13 @@
 package Tests;
 
 import Pages.RegisterPage;
+import Utils.DriverFactory;
 import com.github.javafaker.Faker;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+import org.testng.asserts.SoftAssert;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.UUID;
 
 public class RegisterTest extends BaseTest {
@@ -18,18 +19,29 @@ public class RegisterTest extends BaseTest {
         return "https://wuzzuf.net/jobs/egypt";
     }
 
-    String email = "qa_" + UUID.randomUUID() + "@mail.com";
-    String pass = faker.internet().password();
-    String firstname = faker.name().firstName();
-    String lastname = faker.name().lastName();
-    String mobileunumber = faker.regexify("01[0125][0-9]{8}");
+    String email;
+    String pass;
+    String firstname;
+    String lastname;
+    String mobileunumber;
+    String dob;
 
-    Date Dateofbirth = faker.date().birthday(12, 50);
-    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-    String dob = sdf.format(Dateofbirth);
+    // TestNG reuses one instance for every @Test in the class, so generating the data in field
+    // initialisers would make both tests submit the same email. The second registration would then
+    // be rejected as an existing account and the flow would never leave the create-account step.
+    private void generateUser() {
+        email = "qa_" + UUID.randomUUID() + "@mail.com";
+        pass = faker.internet().password();
+        firstname = faker.name().firstName();
+        lastname = faker.name().lastName();
+        mobileunumber = faker.regexify("01[0125][0-9]{8}");
+        dob = new SimpleDateFormat("dd/MM/yyyy").format(faker.date().birthday(12, 50));
+    }
 
     private void fillPersonalInformationPage() {
-        registerPage = new RegisterPage(driver);
+        generateUser();
+
+        registerPage = new RegisterPage(DriverFactory.GetDriver());
         registerPage.BeginRegisteration();
         registerPage.EnterFN(firstname);
         registerPage.EnterLN(lastname);
@@ -50,9 +62,9 @@ public class RegisterTest extends BaseTest {
     @Test
     public void EnsureUserCanFillPersonalInformation() {
         fillPersonalInformationPage();
-
+        SoftAssert softAssert = new SoftAssert();
         String personalInfoPageText = registerPage.CheckuserOnHisInformationPage();
-        Assert.assertTrue(personalInfoPageText.toLowerCase().contains("tell us about yourself"),
+        softAssert.assertTrue(personalInfoPageText.toLowerCase().contains("tell us about yourself"),
                 "Expected the personal information page title to be shown. Actual text: " + personalInfoPageText);
     }
 
@@ -60,9 +72,9 @@ public class RegisterTest extends BaseTest {
     public void EnsureUserCanReachEducationPage() {
         fillPersonalInformationPage();
         registerPage.Continue_2();
-
+        SoftAssert softAssert = new SoftAssert();
         String educationPageText = registerPage.CheckuserOnHisEducationPage();
-        Assert.assertTrue(educationPageText.toLowerCase().contains("tell us about your education"),
+        softAssert.assertTrue(educationPageText.toLowerCase().contains("tell us about your education"),
                 "Expected the education page title to be shown. Actual text: " + educationPageText);
     }
 }
