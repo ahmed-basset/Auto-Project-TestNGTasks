@@ -2,6 +2,7 @@ package Pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class RegisterPage extends BasePage {
 
@@ -16,17 +17,18 @@ public class RegisterPage extends BasePage {
     By Password =By.cssSelector("input[name=\"password\"]");
     By CreateAccButton = By.cssSelector("button[class=\"css-19xra8v ezfki8j0\"]");
     By fillManaul = By.cssSelector("a[class=\"css-1qhkksc ezfki8j0\"]");
-    By Assert1 = By.xpath("//div[@class=\"css-p14xnm exkztdf0\"]/p[@class=\"css-qqj41n\"]");
+    By Assert1 = By.xpath("//*[contains(normalize-space(.), 'Tell us about yourself') or contains(normalize-space(.), 'Tell Us About Yourself')]");
 
     // Tell about yourself
-
 
     By BDate = By.cssSelector("input[class=\"css-1oy2ayn e1n2h7jb1\"]");
     By GenderM = By.xpath("//label[.//input[@value='male']]");
     By GenderF =By.xpath("//label[.//input[@value='female']]");
     By MobileNum = By.cssSelector("input[class=\"css-e3onam e1n2h7jb1\"]");
     By ContinueB = By.cssSelector("button[class=\"css-lfgv4q ezfki8j0\"]");
-    By Assert2 = By.xpath("//div[@class=\"css-p14xnm exkztdf0\"]/p[@class=\"css-qqj41n\"]");
+    By Assert2 = By.xpath("//*[contains(normalize-space(.), 'Tell us about your education') or contains(normalize-space(.), 'Tell Us About Your Education')]");
+
+
 
     public void BeginRegisteration()
     {
@@ -96,6 +98,19 @@ public class RegisterPage extends BasePage {
     {
         ClickElement(ContinueB);
     }
+
+    //Assertions
+    public String CheckuserOnHisInformationPage()
+    {
+        wait.until(ExpectedConditions.visibilityOfElementLocated(Assert1));
+        return GetText(Assert1);
+    }
+    public String CheckuserOnHisEducationPage()
+    {
+        wait.until(ExpectedConditions.visibilityOfElementLocated(Assert2));
+        return GetText(Assert2);
+    }
+
     public void Register_1(String fn,String ln , String em ,String pass ,String DOB,String gender,String Na,String co,String Cit,String Ar,String Mob)
     {
         BeginRegisteration();
@@ -113,6 +128,11 @@ public class RegisterPage extends BasePage {
         SetArea(Ar);
         SetMobileNum(Mob);
         Continue_2();
+        String infoPageText = CheckuserOnHisInformationPage();
+        String educationPageText = CheckuserOnHisEducationPage();
+        System.out.println(infoPageText);
+        System.out.println(educationPageText);
+
     }
 
 
