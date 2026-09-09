@@ -42,8 +42,7 @@ public class RegisterPage extends BasePage {
      By Assert4 = By.xpath("//*[contains(normalize-space(.), 'Tell us about your expertise') or contains(normalize-space(.), 'Tell Us About Your Expertise')]");
 
      //Tell about Expertise
-     // The expertise step submits with a plain "Continue"; the alternatives cover the wording used
-     // elsewhere in the wizard.
+
      By SaveAndContinue = By.xpath("//button[normalize-space(.)='Continue' or contains(normalize-space(.), 'Save and Continue') or contains(normalize-space(.), 'Save & Continue')]");
      By GetStartedAfterRegistration = By.xpath("//*[self::button or self::a][contains(normalize-space(.), 'Get Started') or contains(normalize-space(.), 'Get started')]");
 
@@ -234,7 +233,41 @@ public class RegisterPage extends BasePage {
         return GetText(Assert5);
     }
 
-    public void Register_1(String fn,String ln , String em ,String pass ,String DOB,String gender,String Na,String co,String Cit,String Ar,String Mob)
+    public void FillEducation()
+    {
+        SetEducationLeVel("Bachelor's Degree");
+        SetFieldStudy("Accounting");
+        SetUniversity("Cairo University");
+        SetYearOfGraduation("2018");
+    }
+
+    public void FillExperience()
+    {
+        SetYearsOfExperience("No experience");
+        SetCareerLevel("Student");
+    }
+
+    // Needs two skills and a language with a proficiency before the step will submit.
+    public void FillExpertise()
+    {
+        CheckuserOnHisExpertisePage();
+        AddSkill("Software Testing");
+        AddSkill("Java");
+        SetLanguage("English");
+        SetLanguageProficiency("Fluent");
+    }
+
+    public void FillCareerInterests()
+    {
+        CheckuserOnHisCareerInterestsPage();
+        SetJobTitle("Software Engineer");
+        // "IT" alone matches anything with those letters in it, and the real category ranks below them.
+        SetJobCategory("IT/Software Development");
+        SetMinimumSalary("5000");
+    }
+
+    public void CompleteRegistration(String fn, String ln, String em, String pass, String DOB, String gender,
+                                     String Na, String co, String Cit, String Ar, String Mob)
     {
         BeginRegisteration();
         EnterFN(fn);
@@ -251,12 +284,19 @@ public class RegisterPage extends BasePage {
         SetArea(Ar);
         SetMobileNum(Mob);
         Continue_2();
-        String infoPageText = CheckuserOnHisInformationPage();
-        String educationPageText = CheckuserOnHisEducationPage();
-        System.out.println(infoPageText);
-        System.out.println(educationPageText);
-
+        FillEducation();
+        Continue_3();
+        FillExperience();
+        Continue_4();
+        FillExpertise();
+        SaveAndContinue(this::FillExpertise);
+        FillCareerInterests();
+        StartUsingTheSite(this::FillCareerInterests);
     }
+
+
+
+
 
 
 }

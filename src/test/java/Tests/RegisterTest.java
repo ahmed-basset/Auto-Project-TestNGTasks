@@ -1,6 +1,5 @@
 package Tests;
 
-import Pages.JobSearchPage;
 import Pages.RegisterPage;
 import Utils.DriverFactory;
 import com.github.javafaker.Faker;
@@ -8,15 +7,11 @@ import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 import java.text.SimpleDateFormat;
-import java.util.List;
 import java.util.UUID;
 
 public class RegisterTest extends BaseTest {
     Faker faker = new Faker();
     RegisterPage registerPage;
-    JobSearchPage jobSearchPage;
-
-    private static final String SEARCHED_JOB_TITLE = "Software Engineer";
 
     @Override
     protected String getUrl() {
@@ -64,39 +59,6 @@ public class RegisterTest extends BaseTest {
         registerPage.SetMobileNum(mobileunumber);
     }
 
-    private void fillEducationPage() {
-        registerPage.SetEducationLeVel("Bachelor's Degree");
-        registerPage.SetFieldStudy("Accounting");
-        registerPage.SetUniversity("Cairo University");
-        registerPage.SetYearOfGraduation("2018");
-    }
-
-    private void fillExperiencePage() {
-        registerPage.SetYearsOfExperience("No experience");
-        registerPage.SetCareerLevel("Student");
-    }
-
-    // The expertise step refuses to submit without at least two skills and one language with a proficiency.
-    private void fillExpertisePage() {
-        // Doubles as the wait this needs when it runs a second time after a reload: the fields are only
-        // worth reading once the step has rendered.
-        registerPage.CheckuserOnHisExpertisePage();
-        registerPage.AddSkill("Software Testing");
-        registerPage.AddSkill("Java");
-        registerPage.SetLanguage("English");
-        registerPage.SetLanguageProficiency("Fluent");
-    }
-
-    // The career interests step needs a job title, at least one job category, and a minimum salary
-    // before "Get Started" will leave the page.
-    private void fillCareerInterestsPage() {
-        // The page arrives after a redirect, so wait for its heading before touching the fields.
-        registerPage.CheckuserOnHisCareerInterestsPage();
-        registerPage.SetJobTitle("Software Engineer");
-        registerPage.SetJobCategory("IT");
-        registerPage.SetMinimumSalary("5000");
-    }
-
     @Test
     public void EnsureUserCanFillPersonalInformation() {
         fillPersonalInformationPage();
@@ -122,7 +84,7 @@ public class RegisterTest extends BaseTest {
     {
         fillPersonalInformationPage();
         registerPage.Continue_2();
-        fillEducationPage();
+        registerPage.FillEducation();
         registerPage.Continue_3();
         SoftAssert softAssert = new SoftAssert();
         String experiencePageText = registerPage.CheckuserOnHisExperiencePage();
@@ -136,9 +98,9 @@ public class RegisterTest extends BaseTest {
     {
         fillPersonalInformationPage();
         registerPage.Continue_2();
-        fillEducationPage();
+        registerPage.FillEducation();
         registerPage.Continue_3();
-        fillExperiencePage();
+        registerPage.FillExperience();
         registerPage.Continue_4();
         SoftAssert softAssert = new SoftAssert();
         String expertisePageText = registerPage.CheckuserOnHisExpertisePage();
@@ -152,12 +114,12 @@ public class RegisterTest extends BaseTest {
     {
         fillPersonalInformationPage();
         registerPage.Continue_2();
-        fillEducationPage();
+        registerPage.FillEducation();
         registerPage.Continue_3();
-        fillExperiencePage();
+        registerPage.FillExperience();
         registerPage.Continue_4();
-        fillExpertisePage();
-        registerPage.SaveAndContinue(this::fillExpertisePage);
+        registerPage.FillExpertise();
+        registerPage.SaveAndContinue(registerPage::FillExpertise);
         SoftAssert softAssert = new SoftAssert();
         String careerInterestsPageText = registerPage.CheckuserOnHisCareerInterestsPage();
         softAssert.assertTrue(careerInterestsPageText.toLowerCase().contains("tell us about your career interests"),
@@ -165,41 +127,4 @@ public class RegisterTest extends BaseTest {
         softAssert.assertAll();
     }
 
-    @Test(enabled = false)
-    public void EnsureUserCanSearchForJobsAfterRegistration()
-    {
-        fillPersonalInformationPage();
-        registerPage.Continue_2();
-        fillEducationPage();
-        registerPage.Continue_3();
-        fillExperiencePage();
-        registerPage.Continue_4();
-        fillExpertisePage();
-        registerPage.SaveAndContinue(this::fillExpertisePage);
-        fillCareerInterestsPage();
-        registerPage.StartUsingTheSite(this::fillCareerInterestsPage);
-
-        jobSearchPage = new JobSearchPage(DriverFactory.GetDriver());
-        jobSearchPage.SearchForJob(SEARCHED_JOB_TITLE);
-
-        SoftAssert softAssert = new SoftAssert();
-
-        List<String> jobTitles = jobSearchPage.GetJobTitles();
-        softAssert.assertFalse(jobTitles.isEmpty(),
-                "Expected the results page to list at least one job for '" + SEARCHED_JOB_TITLE + "'.");
-
-        
-        for (String jobTitle : jobTitles)
-        {
-            String normalized = jobTitle.toLowerCase();
-            softAssert.assertTrue(normalized.contains("software") || normalized.contains("engineer"),
-                    "Expected the listing to be relevant to '" + SEARCHED_JOB_TITLE + "'. Actual title: " + jobTitle);
-        }
-
-        String resultsCountText = jobSearchPage.GetResultsCountText();
-        softAssert.assertTrue(resultsCountText.matches(".*\\d.*"),
-                "Expected the number of search results to be displayed. Actual text: " + resultsCountText);
-
-        softAssert.assertAll();
-    }
 }
