@@ -52,6 +52,32 @@ public class BasePage {
         }
         wait.until(ExpectedConditions.elementToBeClickable(Locator)).click();
     }
+    // A step entered again after a reload can already hold the value the site managed to save, and
+    // sendKeys would append to it rather than replace it.
+    public void ClearAndType(By locator, String str)
+    {
+        WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+        field.clear();
+        field.sendKeys(str);
+    }
+
+    // A value already chosen in a multi-select shows as a chip, and its menu stops offering it, so a
+    // step being filled in for a second time has to skip whatever survived the reload.
+    public boolean HasChosenValue(String value)
+    {
+        By chip = By.xpath("//div[contains(@class,'multiValue')][contains(normalize-space(.), '" + value + "')]");
+        // The implicit wait would otherwise be spent in full every time the answer is "no".
+        driver.manage().timeouts().implicitlyWait(Duration.ZERO);
+        try
+        {
+            return !driver.findElements(chip).isEmpty();
+        }
+        finally
+        {
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(30));
+        }
+    }
+
     public void Typing(By locator , String str)
     {
         for (int attempt = 1; attempt < 3; attempt++)
@@ -86,8 +112,7 @@ public class BasePage {
    }
 
 
-    // Fields located by their visible label. Prefer SelectFromDropDownListByName where the field has
-    // a hidden input, since some react-selects (the graduation year) carry no label at all.
+
     public void SelectFromDropDownList(String label, String value)
     {
         String field = "//*[normalize-space(text())='" + label + "']"
@@ -95,8 +120,7 @@ public class BasePage {
         SelectFromReactSelect(field, value, label);
     }
 
-    // Each react-select renders a hidden input holding the submitted value, and the widget's own
-    // input sits directly before it, so the stable form field name identifies the widget.
+
     public void SelectFromDropDownListByName(String fieldName, String value)
     {
         String field = "//input[@name='" + fieldName + "']"
@@ -104,8 +128,7 @@ public class BasePage {
         SelectFromReactSelect(field, value, fieldName);
     }
 
-    // Some labels wrap part of their text in a child element (the languages block renders its index as
-    // "Language 1"), so the exact text-node match above cannot reach them.
+
     public void SelectFromDropDownListByLabelTag(String labelText, String value)
     {
         String field = "//label[contains(normalize-space(.), '" + labelText + "')]"
@@ -113,13 +136,23 @@ public class BasePage {
         SelectFromReactSelect(field, value, labelText);
     }
 
-    // A react-select menu left open sits over the wizard buttons, so the first click only dismisses it
-    // and the form is never submitted. Dismissing the menu first and retrying while the page has not
-    // moved makes the step reliable regardless of which widget was touched last.
+
     public void ClickAndLeavePage(By locator)
     {
+        ClickAndLeavePage(locator, null);
+    }
+
+    // The wizard's own save calls return a 500 every so often, and the page does not handle it: the
+    // rejected request leaves the button showing its spinner for good, so the step never submits and
+    // never reports an error either. Reloading is the only way out, because the spinner also replaces
+    // the button's label and takes it out of reach of its own locator. Whatever the reload empties has
+    // to be entered again, which is what the recovery step is for.
+    public void ClickAndLeavePage(By locator, Runnable recover)
+    {
         String before = driver.getCurrentUrl();
-        WebDriverWait navigation = new WebDriverWait(driver, Duration.ofSeconds(60));
+        // A submit that works redirects in a few seconds, so a much longer wait only delays the retry
+        // that actually gets the step through.
+        WebDriverWait navigation = new WebDriverWait(driver, Duration.ofSeconds(25));
 
         for (int attempt = 1; attempt <= 3; attempt++)
         {
@@ -129,21 +162,10 @@ public class BasePage {
             {
                 return;
             }
+            // A react-select menu left open sits over the wizard buttons, where it would swallow the
+            // click instead of letting it reach the button.
             actions.sendKeys(Keys.ESCAPE).perform();
-            try
-            {
-                // Once submitted the button shows a spinner in place of its label, so it stops matching
-                // its own locator. That is submission in progress, not a failure: fall through and keep
-                // waiting for the redirect rather than clicking a second time.
-                ClickElement(locator);
-            }
-            catch (TimeoutException e)
-            {
-                if (driver.getCurrentUrl().equals(before) && attempt == 3)
-                {
-                    throw e;
-                }
-            }
+            ClickElement(locator);
             try
             {
                 navigation.until(ExpectedConditions.not(ExpectedConditions.urlToBe(before)));
@@ -151,10 +173,19 @@ public class BasePage {
             }
             catch (TimeoutException e)
             {
-                // Still on the same page; dismiss whatever swallowed the click and try again.
+                // Still here, so the save was refused or is wedged. Start the step over.
+            }
+            if (attempt < 3)
+            {
+                driver.navigate().refresh();
+                if (recover != null)
+                {
+                    recover.run();
+                }
             }
         }
-        throw new TimeoutException("The page did not change after clicking " + locator);
+        throw new TimeoutException("The page did not change after clicking " + locator
+                + ", which happens when the site's own save request fails and it leaves the button loading.");
     }
 
 
@@ -186,7 +217,21 @@ public class BasePage {
                 }
                 input.sendKeys(value);
 
-                menuWait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(options));
+                try
+                {
+                    menuWait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(options));
+                }
+                catch (TimeoutException e)
+                {
+                    // A multi-select drops an option it has already been given from its menu, so an
+                    // empty menu means the value is in place: that is what a step re-entered after a
+                    // failed save runs into, and it has nothing left to do here.
+                    if (HasChosenValue(value))
+                    {
+                        return;
+                    }
+                    throw e;
+                }
                 available.clear();
                 available.addAll(WaitForSettledOptions(options));
 
@@ -226,9 +271,7 @@ public class BasePage {
                 + fieldDescription + "' field. Available options: " + available);
     }
 
-    // The skills and job-title menus fetch their suggestions, so the first list to become visible is
-    // usually a leftover that is replaced a moment later. Reading until two consecutive looks agree
-    // means the match is picked from the list the user would actually see.
+
     private List<String> WaitForSettledOptions(By options)
     {
         List<String> previous = new ArrayList<>();
@@ -258,8 +301,7 @@ public class BasePage {
         return previous;
     }
 
-    // Options are often longer than what identifies them ("Cairo University (CU)" for "Cairo
-    // University"), so fall back to a prefix match once no option matches outright.
+
     private int IndexOfOption(List<String> available, String value)
     {
         for (int i = 0; i < available.size(); i++)
@@ -291,9 +333,7 @@ public class BasePage {
         }
     }
 
-    // The menu list shifts as react-select filters, so an option found a moment ago can end up behind
-    // its neighbour by the time Selenium reaches it. Centring it first fixes most of that, and a
-    // scripted click gets past the rest without waiting for another render.
+
     private void ClickOption(WebElement option)
     {
         js.executeScript("arguments[0].scrollIntoView({block:'center'});", option);

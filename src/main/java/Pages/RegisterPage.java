@@ -155,7 +155,10 @@ public class RegisterPage extends BasePage {
     }
     public void AddSkill(String skill)
     {
-        SelectFromDropDownList("Skills, Tools and Technologies", skill);
+        if (!HasChosenValue(skill))
+        {
+            SelectFromDropDownList("Skills, Tools and Technologies", skill);
+        }
     }
     public void SetLanguage(String language)
     {
@@ -169,21 +172,37 @@ public class RegisterPage extends BasePage {
     {
         ClickAndLeavePage(SaveAndContinue);
     }
+    // The recovery step re-enters the expertise fields when a failed save forces a reload.
+    public void SaveAndContinue(Runnable recover)
+    {
+        ClickAndLeavePage(SaveAndContinue, recover);
+    }
     public void SetJobTitle(String jobTitle)
     {
-        SelectFromDropDownList("Job Titles", jobTitle);
+        if (!HasChosenValue(jobTitle))
+        {
+            SelectFromDropDownList("Job Titles", jobTitle);
+        }
     }
     public void SetJobCategory(String category)
     {
-        SelectFromDropDownList("Job Categories", category);
+        if (!HasChosenValue(category))
+        {
+            SelectFromDropDownList("Job Categories", category);
+        }
     }
     public void SetMinimumSalary(String salary)
     {
-        Typing(MinimumSalary, salary);
+        ClearAndType(MinimumSalary, salary);
     }
     public void StartUsingTheSite()
     {
         ClickAndLeavePage(GetStartedAfterRegistration);
+    }
+    // The recovery step re-enters the career interests fields when a failed save forces a reload.
+    public void StartUsingTheSite(Runnable recover)
+    {
+        ClickAndLeavePage(GetStartedAfterRegistration, recover);
     }
     //Assertions
     public String CheckuserOnHisInformationPage()
