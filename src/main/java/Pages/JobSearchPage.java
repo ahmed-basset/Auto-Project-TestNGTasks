@@ -13,22 +13,25 @@ public class JobSearchPage extends BasePage {
     }
 
 
-    By SearchBar = By.xpath("//input[@type='text' and ("
-            + "contains(translate(@placeholder,'JOBTIL','jobtil'),'job title') or "
-            + "contains(translate(@placeholder,'KEYWORD','keyword'),'keyword') or "
-            + "contains(translate(@name,'QSEARCH','qsearch'),'search') or @name='q')]");
-
+    By SearchBar = By.name("q");
 
     By JobTitles = By.xpath("//h2//a");
 
-
     By ResultsCount = By.xpath("//*[contains(normalize-space(.), 'Jobs found') or contains(normalize-space(.), 'Job found')]"
             + "[not(.//*[contains(normalize-space(.), 'Jobs found') or contains(normalize-space(.), 'Job found')])]");
+
+    // The registration wizard ends on a page with no search box, so the search starts by coming here.
+    public void OpenJobsPage()
+    {
+        driver.get("https://wuzzuf.net/jobs/egypt");
+    }
 
     public void SearchForJob(String jobTitle)
     {
         Typing(SearchBar, jobTitle);
         Enter();
+        // Searching leaves the browse page for /search/jobs, so wait for that before reading results.
+        wait.until(ExpectedConditions.urlContains("/search/jobs"));
         wait.until(ExpectedConditions.visibilityOfElementLocated(JobTitles));
     }
 

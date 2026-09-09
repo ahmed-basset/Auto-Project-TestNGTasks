@@ -142,16 +142,11 @@ public class BasePage {
         ClickAndLeavePage(locator, null);
     }
 
-    // The wizard's own save calls return a 500 every so often, and the page does not handle it: the
-    // rejected request leaves the button showing its spinner for good, so the step never submits and
-    // never reports an error either. Reloading is the only way out, because the spinner also replaces
-    // the button's label and takes it out of reach of its own locator. Whatever the reload empties has
-    // to be entered again, which is what the recovery step is for.
+
     public void ClickAndLeavePage(By locator, Runnable recover)
     {
         String before = driver.getCurrentUrl();
-        // A submit that works redirects in a few seconds, so a much longer wait only delays the retry
-        // that actually gets the step through.
+
         WebDriverWait navigation = new WebDriverWait(driver, Duration.ofSeconds(25));
 
         for (int attempt = 1; attempt <= 3; attempt++)
@@ -367,6 +362,22 @@ public class BasePage {
     }
     // Search results are a list, so the assertions need every matching element's text at once.
     public List<String> GetTexts(By locator)
+    {
+        for (int attempt = 1; attempt < 3; attempt++)
+        {
+            try
+            {
+                return ReadTexts(locator);
+            }
+            catch (StaleElementReferenceException e)
+            {
+                // Search results re-render just after they load, which detaches the elements mid-read.
+            }
+        }
+        return ReadTexts(locator);
+    }
+
+    private List<String> ReadTexts(By locator)
     {
         List<String> texts = new ArrayList<>();
         for (WebElement element : wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(locator)))
