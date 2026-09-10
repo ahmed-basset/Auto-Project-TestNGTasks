@@ -211,6 +211,7 @@ public class BasePage {
                     }
                 }
                 input.sendKeys(value);
+                WaitForTypedValue(input, value);
 
                 try
                 {
@@ -230,21 +231,14 @@ public class BasePage {
                 available.clear();
                 available.addAll(WaitForSettledOptions(options));
 
-                int index = IndexOfOption(available, value);
-                if (index >= 0)
+                if (ClickMatchingOption(options, value, available))
                 {
-                    // Re-read the menu instead of reusing the elements the texts came from: the list
-                    // above is only known to have stopped changing, not to have kept its nodes.
-                    List<WebElement> current = driver.findElements(options);
-                    if (index < current.size())
-                    {
-                        ClickOption(current.get(index));
-                        return;
-                    }
+                    return;
                 }
-                else if (!available.isEmpty())
+                // The menu can also close as the click lands, leaving nothing left to re-read.
+                if (HasChosenValue(value))
                 {
-                    break;
+                    return;
                 }
             }
             catch (StaleElementReferenceException e)
@@ -262,8 +256,67 @@ public class BasePage {
             }
         }
 
+        if (HasChosenValue(value))
+        {
+            return;
+        }
         throw new NoSuchElementException("Option '" + value + "' was not found under the '"
                 + fieldDescription + "' field. Available options: " + available);
+    }
+
+
+    // The settled texts are only known to have stopped changing, not to have kept their nodes, so
+    // the elements are looked up again and re-read until the menu holds still long enough to click.
+    private boolean ClickMatchingOption(By options, String value, List<String> available)
+    {
+        for (int poll = 1; poll <= 10; poll++)
+        {
+            try
+            {
+                List<WebElement> current = driver.findElements(options);
+                if (current.isEmpty())
+                {
+                    SleepBriefly();
+                    continue;
+                }
+                List<String> texts = new ArrayList<>();
+                for (WebElement option : current)
+                {
+                    texts.add(option.getText().trim());
+                }
+                int index = IndexOfOption(texts, value);
+                if (index < 0)
+                {
+                    available.clear();
+                    available.addAll(texts);
+                    return false;
+                }
+                ClickOption(current.get(index));
+                return true;
+            }
+            catch (StaleElementReferenceException e)
+            {
+                // The menu re-rendered mid-read; looking it up again picks up the new nodes.
+                SleepBriefly();
+            }
+        }
+        return false;
+    }
+
+
+    // react-select refilters on every keystroke, so reading the menu before the whole value is
+    // typed can settle on results for a prefix instead.
+    private void WaitForTypedValue(WebElement input, String value)
+    {
+        for (int poll = 1; poll <= 20; poll++)
+        {
+            String typed = input.getAttribute("value");
+            if (typed != null && typed.trim().equalsIgnoreCase(value.trim()))
+            {
+                return;
+            }
+            SleepBriefly();
+        }
     }
 
 
@@ -309,6 +362,14 @@ public class BasePage {
         for (int i = 0; i < available.size(); i++)
         {
             if (available.get(i).toLowerCase().startsWith(value.toLowerCase()))
+            {
+                return i;
+            }
+        }
+        // Last resort: the site sometimes decorates the option with a count or a group name.
+        for (int i = 0; i < available.size(); i++)
+        {
+            if (available.get(i).toLowerCase().contains(value.toLowerCase()))
             {
                 return i;
             }
