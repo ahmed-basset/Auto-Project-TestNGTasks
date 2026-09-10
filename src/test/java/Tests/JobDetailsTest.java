@@ -43,8 +43,7 @@ public class JobDetailsTest extends Authorization {
                 "Expected '" + jobToSave + "' to be listed on the saved jobs page. Actual list: " + savedJobs);
     }
 
-    // The draft this test leaves behind turns the job's "Apply for Job" button into "Complete your
-    // application", which would stop the next run before it starts.
+
     @AfterMethod
     public void DeleteTheDraftTheTestLeft()
     {

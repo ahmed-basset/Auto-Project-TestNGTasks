@@ -62,7 +62,15 @@ public class BasePage {
             if (element.isDisplayed())
             {
                 js.executeScript("arguments[0].scrollIntoView({block:'center'});", element);
-                element.click();
+                try
+                {
+                    element.click();
+                }
+                catch (ElementClickInterceptedException e)
+                {
+                    // A menu opening over the control takes the click; the element itself still works.
+                    js.executeScript("arguments[0].click();", element);
+                }
                 return;
             }
         }
@@ -82,7 +90,12 @@ public class BasePage {
     // step being filled in for a second time has to skip whatever survived the reload.
     public boolean HasChosenValue(String value)
     {
-        By chip = By.xpath("//div[contains(@class,'multiValue')][contains(normalize-space(.), '" + value + "')]");
+        // The site strips react-select's own "multiValue" class off its chips, so a chip is found by
+        // its shape instead: the span holding the text, sitting next to the span holding the remove
+        // icon. Some values arrive on their own — picking a job title adds its category — and without
+        // this the step keeps re-entering a value that is already in place.
+        By chip = By.xpath("//span[normalize-space(text())='" + value + "']"
+                + "[following-sibling::span[.//*[name()='svg']]]");
         // The implicit wait would otherwise be spent in full every time the answer is "no".
         driver.manage().timeouts().implicitlyWait(Duration.ZERO);
         try
@@ -290,16 +303,33 @@ public class BasePage {
         {
             try
             {
-                List<WebElement> current = driver.findElements(options);
-                if (current.isEmpty())
+                // A menu left over from the narrow layout carries the same options while hidden, and
+                // clicking one of those does nothing at all, so only what is on screen counts.
+                List<WebElement> shown = new ArrayList<>();
+                List<String> texts = new ArrayList<>();
+                List<WebElement> found = driver.findElements(options);
+                for (WebElement option : found)
+                {
+                    if (option.isDisplayed())
+                    {
+                        shown.add(option);
+                        texts.add(option.getText().trim());
+                    }
+                }
+                if (shown.isEmpty())
+                {
+                    // Some of the site's menus report every option as hidden while still taking a
+                    // click, so an all-hidden menu is worth trying rather than waiting out.
+                    for (WebElement option : found)
+                    {
+                        shown.add(option);
+                        texts.add(option.getText().trim());
+                    }
+                }
+                if (shown.isEmpty())
                 {
                     SleepBriefly();
                     continue;
-                }
-                List<String> texts = new ArrayList<>();
-                for (WebElement option : current)
-                {
-                    texts.add(option.getText().trim());
                 }
                 int index = IndexOfOption(texts, value);
                 if (index < 0)
@@ -308,7 +338,7 @@ public class BasePage {
                     available.addAll(texts);
                     return false;
                 }
-                ClickOption(current.get(index));
+                ClickOption(shown.get(index));
                 return true;
             }
             catch (StaleElementReferenceException e)
