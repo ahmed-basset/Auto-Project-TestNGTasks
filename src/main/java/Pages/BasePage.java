@@ -52,6 +52,23 @@ public class BasePage {
         }
         wait.until(ExpectedConditions.elementToBeClickable(Locator)).click();
     }
+
+    // The site carries a second, hidden copy of some controls for its narrow layout, and it comes
+    // first in the DOM, so ClickElement would sit waiting on a button that is never shown.
+    public void ClickVisibleElement(By locator)
+    {
+        for (WebElement element : wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(locator)))
+        {
+            if (element.isDisplayed())
+            {
+                js.executeScript("arguments[0].scrollIntoView({block:'center'});", element);
+                element.click();
+                return;
+            }
+        }
+        throw new NoSuchElementException("No visible element matched " + locator);
+    }
+
     // A step entered again after a reload can already hold the value the site managed to save, and
     // sendKeys would append to it rather than replace it.
     public void ClearAndType(By locator, String str)

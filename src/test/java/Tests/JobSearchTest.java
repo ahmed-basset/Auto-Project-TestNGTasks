@@ -66,4 +66,21 @@ public class JobSearchTest extends BaseTest {
 
         softAssert.assertAll();
     }
+
+    @Test
+    public void EnsureUserCanFilterJobsByPastWeek()
+    {
+        jobSearchPage = new JobSearchPage(DriverFactory.GetDriver());
+        jobSearchPage.SearchForJob(SEARCHED_JOB_TITLE);
+
+        jobSearchPage.OpenDatePostedFilter();
+        jobSearchPage.ChoosePastWeek();
+
+        System.out.println("Results after the Past Week filter: " + jobSearchPage.GetResultsCountText());
+        for (String jobTitle : jobSearchPage.GetJobTitles())
+        {
+            System.out.println(jobTitle);
+        }
+
+    }
 }
